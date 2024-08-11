@@ -1,0 +1,116 @@
+---
+- name: Create openvpn ovpn file directory
+  ansible.builtin.file:
+    path: "{{ openvpn_ovpn_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Copy openssl client extensions
+  ansible.builtin.copy:
+    src: openssl-client.ext
+    dest: "{{ openvpn_key_dir }}"
+    owner: root
+    group: root
+    mode: 0400
+
+- name: Generate client key
+  ansible.builtin.command: >-
+    openssl req -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout {{ item }}.key -out {{ item }}.csr
+    -days 3650 -subj /CN=OpenVPN-Client-{{ inventory_hostname[:24] }}-{{ item[:24] }}/
+  args:
+    chdir: "{{ openvpn_key_dir }}"
+    creates: "{{ item }}.key"
+  with_items:
+    - "{{ clients }}"
+
+- name: Protect client keys
+  ansible.builtin.file:
+    path: "{{ openvpn_key_dir }}/{{ item }}.key"
+    mode: 0400
+  with_items:
+    - "{{ clients }}"
+
+- name: Sign client key
+  ansible.builtin.command: openssl x509 -req -in {{ item }}.csr -out {{ item }}.crt -CA ca.crt -CAkey ca-key.pem -sha256 -days 3650 -extfile openssl-client.ext
+  args:
+    chdir: "{{ openvpn_key_dir }}"
+    creates: "{{ item }}.crt"
+  with_items:
+    - "{{ clients }}"
+
+- name: Register server ca key
+  ansible.builtin.slurp:
+    src: "{{ openvpn_key_dir }}/ca.crt"
+  register: ca_cert
+
+- name: Register tls-auth key
+  ansible.builtin.slurp:
+    src: "{{ openvpn_key_dir }}/ta.key"
+  register: tls_auth
+
+- name: Register client certs
+  ansible.builtin.slurp:
+    src: "{{ openvpn_key_dir }}/{{ item }}.crt"
+  with_items:
+    - "{{ clients }}"
+  register: client_certs
+
+- name: Register client keys
+  ansible.builtin.slurp:
+    src: "{{ openvpn_key_dir }}/{{ item }}.key"
+  with_items:
+    - "{{ clients }}"
+  register: client_keys
+
+- name: Generate client config
+  no_log: "{{ openvpn_client_config_no_log }}"
+  ansible.builtin.template:
+    src: client.ovpn.j2
+    dest: "{{ openvpn_ovpn_dir }}/{{ item.0.item }}-{{ inventory_hostname }}.ovpn"
+    owner: root
+    group: root
+    mode: 0400
+  with_together:
+    - "{{ client_certs.results }}"
+    - "{{ client_keys.results }}"
+
+- name: Fetch client config
+  ansible.builtin.fetch:
+    src: "{{ openvpn_ovpn_dir }}/{{ item }}-{{ inventory_hostname }}.ovpn"
+    dest: "{{ openvpn_fetch_client_configs_dir }}/{{ item }}/{{ inventory_hostname }}{{ openvpn_fetch_client_configs_suffix }}.ovpn"
+    flat: true
+  when: openvpn_fetch_client_configs
+  with_items:
+    - "{{ clients }}"
+
+- name: Fetch client certs
+  ansible.builtin.fetch:
+    src: "{{ openvpn_key_dir }}/{{ item }}.crt"
+    dest: "{{ openvpn_fetch_client_certs_dir }}/{{ item }}/{{ inventory_hostname }}{{ openvpn_fetch_client_certs_suffix }}.crt"
+    flat: true
+  when: openvpn_fetch_client_certs
+  with_items:
+    - "{{ clients }}"
+
+- name: Fetch client keys
+  ansible.builtin.fetch:
+    src: "{{ openvpn_key_dir }}/{{ item }}.key"
+    dest: "{{ openvpn_fetch_client_keys_dir }}/{{ item }}/{{ inventory_hostname }}{{ openvpn_fetch_client_keys_suffix }}.key"
+    flat: true
+  when: openvpn_fetch_client_keys
+  with_items:
+    - "{{ clients }}"
+
+- name: Fetch CA key
+  ansible.builtin.fetch:
+    src: "{{ openvpn_key_dir }}/ca.crt"
+    dest: "{{ openvpn_fetch_client_certs_dir }}/ca.crt"
+    flat: true
+  when: openvpn_fetch_client_certs
+
+- name: Fetch TLS-auth key
+  ansible.builtin.fetch:
+    src: "{{ openvpn_key_dir }}/ta.key"
+    dest: "{{ openvpn_fetch_client_certs_dir }}/ta.key"
+    flat: true
+  when: openvpn_fetch_client_certs

@@ -1,0 +1,8 @@
+---
+- name: Run tests
+  hosts: localhost
+  remote_user: root
+  roles:
+    - itsec_ansible_collection.applications.openvpn
+  vars:
+    guacamole_postgresql_auth: true

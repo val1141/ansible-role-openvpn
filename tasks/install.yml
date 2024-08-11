@@ -1,0 +1,68 @@
+---
+- name: Install EPEL for CentOS
+  ansible.builtin.package:
+    name: "{{ epel_package_name }}"
+    state: present
+  when: ansible_distribution == "CentOS" or ansible_distribution=="Rocky"
+
+- name: Install EPEL for RHEL
+  ansible.builtin.yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
+    state: present
+    disable_gpg_check: true
+  when: ansible_distribution=="RedHat" and ansible_distribution_major_version == "8"
+
+- name: Enable extra repos for RHEL 8
+  community.general.rhsm_repository:
+    name: "codeready-builder-for-rhel-8-{{ ansible_architecture }}-rpms"
+    state: enabled
+  when: ansible_distribution=="RedHat" and ansible_distribution_major_version == "8"
+
+- name: Enable extra repos for RHEL 7
+  community.general.rhsm_repository:
+    name: "{{ item }}"
+    state: enabled
+  with_items:
+    - "rhel-*-optional-rpms"
+    - "rhel-*-extras-rpms"
+    - "rhel-ha-for-rhel-*-server-rpms"
+  when: ansible_distribution=="RedHat" and ansible_distribution_major_version == "7"
+
+- name: Install python2-dnf for Fedora dnf support
+  ansible.builtin.raw: dnf install -y python2-dnf
+  when:
+    - ansible_distribution == "Fedora"
+    - ansible_python.version.major == 2
+  register: fedora_dnf
+  changed_when: '"Nothing to do." not in fedora_dnf.stdout'
+
+- name: Install openvpn
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ openvpn_package_name }}"
+    - "{{ openssl_package_name }}"
+
+- name: Install LDAP plugin
+  become: true
+  ansible.builtin.package:
+    name: "{{ openvpn_ldap_plugin_package_name }}"
+    state: present
+  when:
+    - openvpn_use_ldap
+    - ansible_distribution == "CentOS" or ansible_distribution == "RedHat" and ansible_distribution_major_version != "8" or ansible_distribution != "CentOS"
+
+- name: Compile LDAP plugin
+  ansible.builtin.include_tasks: compile_ldap_plugin.yml
+  when:
+    - openvpn_use_ldap
+    - ansible_distribution == "CentOS"  or ansible_distribution == "RedHat" and ansible_distribution_major_version == "8"
+
+# RHEL has the group 'nobody', 'Debian/Ubuntu' have 'nogroup'
+# standardize on 'nogroup'
+- name: Ensure group 'nogroup' is present
+  ansible.builtin.group:
+    name: nogroup
+    state: present
+    system: true

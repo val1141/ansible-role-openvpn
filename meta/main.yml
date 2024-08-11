@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  author: Stefan Machmeier
+  description: Ansible role to install and configure openvpn.
+  license: EUPL1.2
+  namespace: val1141
+  role_name: openvpn
+
+  min_ansible_version: "2.9"
+
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+    - name: Ubuntu
+      versions:
+        - focal
+        - yammy
+
+  galaxy_tags:
+    - networking
+    - openvpn
+    - remote
+
+dependencies: []
