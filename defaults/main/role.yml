@@ -20,6 +20,7 @@ openvpn_fetch_client_keys_dir: /tmp/ansible/{{ inventory_hostname }}
 openvpn_fetch_client_keys_suffix: ""
 openvpn_fetch_server_configs: false
 openvpn_fetch_server_configs_dir: /tmp/ansible/{{ inventory_hostname }}
+openvpn_include_client_cert_key: true
 
 # Firewall
 firewalld_default_interface_zone: public

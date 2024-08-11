@@ -72,7 +72,7 @@
             path: "{{ openvpn_auth_ldap_bin_path | dirname }}"
             owner: root
             group: root
-            mode: 0750
+            mode: "0750"
             state: directory
 
         # This is fixing https://github.com/threerings/openvpn-auth-ldap/pull/85
