@@ -41,7 +41,7 @@
   ansible.builtin.file:
     path: "{{ openvpn_base_dir }}/auth"
     state: directory
-    mode: 0755
+    mode: "0755"
   when: openvpn_use_ldap
 
 - name: Delete auth folder in openvpn dir
@@ -64,7 +64,7 @@
     dest: "{{ openvpn_log_dir }}"
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
 
 - name: Copy openvpn logrotate config file
   ansible.builtin.template:
@@ -72,7 +72,7 @@
     dest: /etc/logrotate.d/openvpn-{{ openvpn_config_file }}.conf
     owner: root
     group: root
-    mode: 0400
+    mode: "0400"
   when: ansible_os_family != 'Solaris'
 
 - name: Create client config directory
@@ -81,7 +81,7 @@
     path: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dir }}"
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   when: openvpn_client_config
 
 - name: Create client configs
@@ -90,7 +90,7 @@
     dest: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dir }}/{{ item.key }}"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   when: openvpn_client_config
   with_dict: "{{ openvpn_client_configs }}"
 
@@ -122,3 +122,10 @@
     state: started
   # Github Actions doesn't allow entrypoints, so PID 1 isn't an init system
   when: ansible_service_mgr != "tail"
+
+- name: Fetch server config file
+  ansible.builtin.fetch:
+    src: "{{ openvpn_base_dir }}/{{ openvpn_config_file }}.conf"
+    dest: "{{ openvpn_fetch_server_configs_dir }}/{{ openvpn_config_file }}.conf"
+    flat: true
+  when: openvpn_fetch_server_configs is defined and openvpn_fetch_server_configs | bool

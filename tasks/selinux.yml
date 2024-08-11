@@ -10,6 +10,6 @@
   ansible.builtin.template:
     src: "selinux_module.te.j2"
     dest: /var/lib/selinux/{{ openvpn_selinux_module }}.te
-    mode: 0644
+    mode: "0644"
   notify:
     - Build and install policy
