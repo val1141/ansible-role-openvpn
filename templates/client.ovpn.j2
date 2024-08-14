@@ -40,6 +40,8 @@ register-dns
 {% if tls_auth_required %}
 key-direction 1
 {% endif %}
+
+{% if openvpn_include_client_cert_key %}
 <ca>
 {{ ca_cert.content|b64decode }}
 </ca>
@@ -57,6 +59,7 @@ key-direction 1
 <key>
 {{ item.1.content|b64decode }}
 </key>
+{% endif %}
 
 {% if openvpn_verify_cn|bool %}
 verify-x509-name OpenVPN-Server-{{ inventory_hostname[:49] }} name

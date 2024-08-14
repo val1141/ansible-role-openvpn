@@ -71,8 +71,8 @@
     group: root
     mode: "0400"
   with_together:
-    - "{{ client_certs.results if openvpn_include_client_cert_key else [] }}"
-    - "{{ client_keys.results if openvpn_include_client_cert_key else [] }}"
+    - "{{ client_certs.results }}"
+    - "{{ client_keys.results }}"
 
 
 - name: Fetch client config
