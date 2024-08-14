@@ -5,7 +5,7 @@ local {{ openvpn_local }}
 {% endif %}
 port {{ openvpn_port }}
 {% if openvpn_dualstack %}
-proto {{ openvpn_proto }}6
+proto {{ openvpn_proto }}
 {% else %}
 proto {{ openvpn_proto }}
 {% endif %}
