@@ -10,7 +10,7 @@ tls-version-min 1.2
 
 proto {{ openvpn_proto }}
 remote {{ openvpn_server_hostname }} {{ openvpn_port }}
-dev tun
+dev {{ openvpn_dev | default('tun') }}
 
 resolv-retry {{ openvpn_resolv_retry }}
 nobind

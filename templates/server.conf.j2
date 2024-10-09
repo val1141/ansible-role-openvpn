@@ -9,7 +9,11 @@ proto {{ openvpn_proto }}
 {% else %}
 proto {{ openvpn_proto }}
 {% endif %}
-dev tun
+dev {{ openvpn_dev | default('tun') }}
+
+{% if openvpn_use_topology_subnet | default(false) %}
+topology subnet
+{% endif %}
 
 ca {{ openvpn_key_dir }}/ca.crt
 cert {{ openvpn_key_dir }}/server.crt
@@ -54,6 +58,20 @@ topology {{ openvpn_topology }}
 ifconfig-pool-persist {{ openvpn_ifconfig_pool_persist_file }}
 {% if openvpn_client_config %}
 client-config-dir {{ openvpn_client_config_dir }}
+{% endif %}
+
+# Server-side routes
+{% if openvpn_routes is defined %}
+{% for route in openvpn_routes %}
+route {{ route.network }} {{ route.netmask }} {{ route.gateway | default('') }} {{ route.metric | default('') }}
+{% endfor %}
+{% endif %}
+
+# Routes to push to clients
+{% if openvpn_push_routes is defined %}
+{% for route in openvpn_push_routes %}
+push "route {{ route.network }} {{ route.netmask }}"
+{% endfor %}
 {% endif %}
 
 {% if openvpn_redirect_gateway|bool %}

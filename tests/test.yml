@@ -1,8 +1,48 @@
----
-- name: Run tests
-  hosts: localhost
-  remote_user: root
-  roles:
-    - itsec_ansible_collection.applications.openvpn
+  
+- name: Configure OpenVPN and Firewall
+  hosts: vpnservers
+  become: true
+  gather_facts: true
   vars:
-    guacamole_postgresql_auth: true
+    # fetch settings
+    openvpn_fetch_client_configs: true
+    openvpn_fetch_client_certs: true
+    openvpn_fetch_client_keys: true
+    openvpn_fetch_client_configs_dir: ~/{{ inventory_hostname }}
+    openvpn_fetch_client_certs_dir: ~/{{ inventory_hostname }}
+    openvpn_fetch_client_keys_dir: ~/{{ inventory_hostname }}
+    openvpn_fetch_client_configs_suffix: _config
+    openvpn_fetch_server_configs: true
+    openvpn_fetch_server_configs_dir: ~/{{ inventory_hostname }}
+    openvpn_include_client_cert_key: true
+    # servers settings
+    openvpn_client_to_client: true
+    openvpn_client_config: false
+    openvpn_compression: "lz4-v2"
+    # DNS
+    openvpn_client_register_dns: false
+    openvpn_set_dns: false
+    # TLS settings
+    openvpn_use_hardened_tls: true
+    openvpn_use_modern_tls: true
+    openvpn_use_pregenerated_dh_params: false
+    openvpn_dev: tap
+    openvpn_use_topology_subnet: true
+    tls_auth_required: true
+#    guacamole_postgresql_auth: true
+    clients:
+      - client1
+      - client2
+      - client3
+      - client4
+
+  tasks:
+    - name: Update Apt Cache
+      ansible.builtin.apt:
+        update_cache: true
+      become: true
+      when: ansible_os_family == "Debian"
+
+    - name: Run val1141.openvpn role
+      ansible.builtin.include_role:
+        name: val1141.openvpn
