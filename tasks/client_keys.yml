@@ -73,7 +73,6 @@
   with_items:
     - "{{ clients }}"
 
-
 - name: Fetch client config
   ansible.builtin.fetch:
     src: "{{ openvpn_ovpn_dir }}/{{ item }}-{{ inventory_hostname }}.ovpn"
