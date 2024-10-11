@@ -16,7 +16,7 @@
 - name: Generate client key
   ansible.builtin.command: >-
     openssl req -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout {{ item }}.key -out {{ item }}.csr
-    -days 3650 -subj /CN={{ item }}/
+    -days 3650 -subj /CN=OpenVPN-Client-{{ inventory_hostname[:24] }}-{{ item[:24] }}/
   args:
     chdir: "{{ openvpn_key_dir }}"
     creates: "{{ item }}.key"
@@ -66,12 +66,14 @@
   no_log: "{{ openvpn_client_config_no_log }}"
   ansible.builtin.template:
     src: client.ovpn.j2
-    dest: "{{ openvpn_ovpn_dir }}/{{ item }}-{{ inventory_hostname }}.ovpn"
+    dest: "{{ openvpn_ovpn_dir }}/{{ item.0.item }}-{{ inventory_hostname }}.ovpn"
     owner: root
     group: root
     mode: "0400"
-  with_items:
-    - "{{ clients }}"
+  with_together:
+    - "{{ client_certs.results }}"
+    - "{{ client_keys.results }}"
+
 
 - name: Fetch client config
   ansible.builtin.fetch:
