@@ -15,7 +15,7 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - focal
-        - yammy
+        - all
 
   galaxy_tags:
     - networking

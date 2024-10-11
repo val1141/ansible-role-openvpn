@@ -87,12 +87,13 @@
 - name: Create client configs
   ansible.builtin.template:
     src: client_ccd.j2
-    dest: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dir }}/{{ item.key }}"
+    dest: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dir }}/{{ item }}"
     owner: root
     group: root
     mode: "0644"
   when: openvpn_client_config
-  with_dict: "{{ openvpn_client_configs }}"
+  with_items:
+    - "{{ clients }}"
 
 - name: List client config directory
   ansible.builtin.command: "ls -1 {{ openvpn_base_dir }}/{{ openvpn_client_config_dir }}"
