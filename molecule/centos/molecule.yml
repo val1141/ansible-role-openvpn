@@ -5,10 +5,13 @@ dependency:
   options:
     role-file: molecule/shared/requirements.yml
     requirements-file: molecule/shared/collections.yml
+
 driver:
   name: docker
+
 lint: |
   ansible-lint
+
 platforms:
   - name: rocky9
     image: rockylinux:9
@@ -21,18 +24,18 @@ platforms:
     tmpfs:
       - /run
       - /run/lock
-      - /tmp
     capabilities:
       - SYS_ADMIN
     security_opts:
       - seccomp=unconfined
+
 provisioner:
   name: ansible
   playbooks:
     converge: ../shared/converge.yml
     prepare: ../shared/prepare.yml
-  config_options:
-    defaults:
-      remote_tmp: /tmp/.ansible_tmp
+  env:
+    ANSIBLE_REMOTE_TMP: /tmp/.ansible-tmp
+
 verifier:
   name: ansible
