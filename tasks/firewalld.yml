@@ -1,10 +1,12 @@
----
 - name: Enable firewalld
+# Выключены операции с firewalld для docker-контейнеров, т.к. в них он некорректно работает из-за чего падают тесты
   ansible.builtin.service:
     name: firewalld
     enabled: true
     masked: false
     state: started
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
 
 - name: Install python2-firewall (Fedora)
   ansible.builtin.package:
@@ -13,6 +15,7 @@
   when:
     - ansible_distribution == "Fedora"
     - ansible_python.version.major == 2
+    - ansible_virtualization_type not in ['docker', 'container']
 
 - name: Enable OpenVPN Port (firewalld)
   ansible.posix.firewalld:
@@ -21,6 +24,8 @@
     permanent: true
     immediate: true
     state: enabled
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
 
 - name: Set tun0 interface to internal
   ansible.posix.firewalld:
@@ -29,6 +34,8 @@
     permanent: true
     immediate: true
     state: enabled
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
 
 - name: Set default interface to external
   ansible.posix.firewalld:
@@ -37,6 +44,8 @@
     permanent: true
     immediate: true
     state: enabled
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
 
 - name: Enable masquerading on external zone
   ansible.posix.firewalld:
@@ -44,8 +53,8 @@
     zone: "{{ firewalld_default_interface_zone }}"
     permanent: true
     state: enabled
-    # Workaround ansible issue: https://github.com/ansible/ansible/pull/21693
-    # immediate: true
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
   notify:
     - Restart firewalld
 

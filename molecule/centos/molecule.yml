@@ -10,8 +10,8 @@ driver:
 lint: |
   ansible-lint
 platforms:
-  - name: centos8
-    image: geerlingguy/docker-centos8-ansible
+  - name: rocky9
+    image: rockylinux:9
     pre_build_image: true
     privileged: true
     override_command: false
@@ -31,5 +31,8 @@ provisioner:
   playbooks:
     converge: ../shared/converge.yml
     prepare: ../shared/prepare.yml
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible_tmp
 verifier:
   name: ansible
