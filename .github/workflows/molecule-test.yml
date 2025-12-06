@@ -3,10 +3,10 @@ name: Molecule Test
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   molecule:
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          path: "${{ github.repository }}"
 
       - name: Molecule
         uses: gofrolist/molecule-action@v2
