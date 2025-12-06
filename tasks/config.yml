@@ -120,8 +120,10 @@
     name: "{{ openvpn_service_name }}"
     enabled: true
     state: started
-  # Github Actions doesn't allow entrypoints, so PID 1 isn't an init system
-  when: ansible_service_mgr != "tail"
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
+    - ansible_service_mgr == 'systemd'
+
 
 - name: Fetch server config file
   ansible.builtin.fetch:

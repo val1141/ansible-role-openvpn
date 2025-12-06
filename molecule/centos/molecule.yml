@@ -5,34 +5,36 @@ dependency:
   options:
     role-file: molecule/shared/requirements.yml
     requirements-file: molecule/shared/collections.yml
+
 driver:
   name: docker
+
 lint: |
+  set -e
+  yamllint `git ls-files '*.yaml' '*.yml'`
   ansible-lint
+  flake8
+
 platforms:
   - name: rocky9
     image: rockylinux:9
     pre_build_image: true
     privileged: true
-    override_command: false
     dns_servers:
       - 1.1.1.1
       - 8.8.8.8
-    tmpfs:
-      - /run
-      - /run/lock
-      - /tmp
     capabilities:
       - SYS_ADMIN
     security_opts:
       - seccomp=unconfined
+
 provisioner:
   name: ansible
   playbooks:
     converge: ../shared/converge.yml
     prepare: ../shared/prepare.yml
-  config_options:
-    defaults:
-      remote_tmp: /tmp/.ansible_tmp
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/..:${ANSIBLE_ROLES_PATH}"
+
 verifier:
   name: ansible

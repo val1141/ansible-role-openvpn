@@ -75,5 +75,14 @@
 - name: Set OpenVPN service
   ansible.builtin.lineinfile:
     path: "/etc/systemd/system/multi-user.target.wants/{{ openvpn_service_name }}"
-    line: ExecStart=/usr/sbin/openvpn --status %t/openvpn-server/status-%i.log --status-version 2 --cipher AES-256-GCM --ncp-ciphers AES-256-GCM:AES-128-GCM:AES-256-CBC:AES-128-CBC:BF-CBC --config %i.conf
+    line: >-
+      ExecStart=/usr/sbin/openvpn --status %t/openvpn-server/status-%i.log
+      --status-version 2
+      --cipher AES-256-GCM
+      --ncp-ciphers AES-256-GCM:AES-128-GCM:AES-256-CBC:AES-128-CBC:BF-CBC
+      --config %i.conf
     state: present
+  when:
+    - ansible_virtualization_type not in ['docker', 'container']
+    - ansible_service_mgr == 'systemd'
+

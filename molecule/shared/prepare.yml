@@ -6,3 +6,9 @@
         update_cache: true
       become: true
       when: ansible_os_family == "Debian"
+
+    - name: Install sudo on EL
+      ansible.builtin.package:
+        name: sudo
+        state: present
+      when: ansible_os_family == "RedHat"
