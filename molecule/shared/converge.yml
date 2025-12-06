@@ -28,6 +28,6 @@
         enabled: true
       become: true
 
-    - name: Run bwinfosec.openvpn
+    - name: Run val1141 fork of bwinfosec.openvpn
       ansible.builtin.include_role:
-        name: bwinfosec.openvpn
+        name: ansible-role-openvpn
